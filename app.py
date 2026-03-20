@@ -1,45 +1,47 @@
 import streamlit as st
 
-# 1. Konfiguration & CSS för gränssnittet
-st.set_page_config(page_title="Diastolic Dysfunction CDS", layout="centered")
+# 1. Konfiguration
+st.set_page_config(page_title="Diastolisk Dysfunktion", layout="centered")
 
+# 2. CSS för total döljning av branding och optimerad mobilvy
 st.markdown("""
     <style>
-        /* Döljer övre listen (GitHub, Fork, Meny) och footern */
+        /* Döljer header, footer och menyer helt */
         header {visibility: hidden !important;}
         footer {visibility: hidden !important;}
-        #MainMenu {visibility: hidden;}
+        #MainMenu {visibility: hidden !important;}
         
-        /* Justering av titel för Pixel 10 */
+        /* Tar bort Streamlit-logotyper och statusikoner */
+        .stAppDeployButton {display: none !important;}
+        div[data-testid="stStatusWidget"] {display: none !important;}
+        div[data-testid="stToolbar"] {display: none !important;}
+        div[data-testid="stDecoration"] {display: none !important;}
+
+        /* Renodlad titel utan emoji för Pixel 10 */
         .main-title {
             font-size: 24px !important;
             font-weight: bold;
-            margin-top: -50px;
-            padding-bottom: 5px;
+            margin-top: -65px; 
+            padding-bottom: 15px;
             color: #1E1E1E;
-        }
-        
-        /* Gör widgets mer kompakta på mobil */
-        .stNumberInput, .stCheckbox {
-            margin-bottom: -10px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
     </style>
-    <div class="main-title">🫀 Diastolic Dysfunction CDS</div>
+    <div class="main-title">Diastolisk Dysfunktion</div>
 """, unsafe_allow_html=True)
 
-# --- 2. EACVI DIASTOLISK GRADERING (Huvudblock) ---
-st.subheader("EACVI Diastolisk Gradering")
+# --- 3. EACVI DIASTOLISK GRADERING ---
+st.subheader("EACVI gradering")
 with st.container():
     c1, c2 = st.columns(2)
     ef = c1.number_input("LVEF (%)", 10, 85, 55)
     lavi = c2.number_input("LAVI (ml/m²)", 10, 80, 28)
     
     col1, col2, col3 = st.columns(3)
-    e_vel = col1.number_input("E (m/s)", 0.2, 2.0, 0.80)
+    e_vel = col1.number_input("E (m/s)", 0.20, 2.00, 0.80)
     e_prime = col2.number_input("e' avg (cm/s)", 2, 25, 9)
-    tr_vmax = col3.number_input("TR Vmax (m/s)", 1.5, 4.5, 2.40)
+    tr_vmax = col3.number_input("TR Vmax (m/s)", 1.50, 4.50, 2.40)
     
-    # Beräkning av derivat
     e_ep = (e_vel * 100) / e_prime if e_prime > 0 else 0
 
     def analyze_diastology():
@@ -61,12 +63,11 @@ with st.container():
 
 st.divider()
 
-# --- 3. KLINISKA PARAMETRAR (Expanderbar för plats) ---
+# --- 4. KLINISKA PARAMETRAR ---
 with st.expander("👤 Kliniska Parametrar & BMI", expanded=True):
     col_k1, col_k2 = st.columns(2)
     age = col_k1.number_input("Ålder", 18, 100, 65)
     
-    # Automatisk BMI-logik
     h_cm = st.number_input("Längd (cm)", 100, 220, 175)
     w_kg = st.number_input("Vikt (kg)", 30, 250, 80)
     bmi = w_kg / ((h_cm/100)**2)
@@ -78,14 +79,12 @@ with st.expander("👤 Kliniska Parametrar & BMI", expanded=True):
 
 st.divider()
 
-# --- 4. SCORES (Flikar) ---
+# --- 5. SCORES ---
 tab1, tab2 = st.tabs(["HFA-PEFF", "H2FPEF"])
 
 with tab1:
     st.subheader("HFA-PEFF (Step 2)")
     major, minor = [], []
-    
-    # Automatisk poängsättning baserad på ovanstående data
     if e_ep >= 15: major.append("E/e' ≥ 15 (2p)")
     elif 9 <= e_ep <= 14: minor.append("E/e' 9-14 (1p)")
     if tr_vmax > 2.8: major.append("TR Vmax > 2.8 (2p)")
@@ -108,7 +107,6 @@ with tab1:
 
 with tab2:
     st.subheader("H2FPEF Score")
-    # Logik för H2FPEF
     h2_pts = 0
     if bmi > 30: h2_pts += 2
     if htn: h2_pts += 1
@@ -127,6 +125,6 @@ with tab2:
 
 st.divider()
 
-# --- 5. RESET (Endast Ikon) ---
+# --- 6. RESET ---
 if st.button("🔄"):
     st.rerun()

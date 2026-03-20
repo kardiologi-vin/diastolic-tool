@@ -5,13 +5,17 @@ st.set_page_config(page_title="Diastolic Dysfunction CDS", layout="centered")
 
 st.title("🫀 Diastolic Dysfunction CDS")
 
-# --- GEMENSAMMA INPUTS ---
-with st.sidebar:
-    st.header("Kliniska Parametrar")
-    age = st.number_input("Ålder", 18, 100, 65)
-    bmi = st.number_input("BMI (kg/m²)", 15, 60, 27)
-    afib = st.checkbox("Förmaksflimmer (Afib)")
-    htn = st.checkbox("Hypertoni (≥2 läkemedel)")
+# --- KLINISKA PARAMETRAR ---
+with st.expander("👤 Kliniska Parametrar (BMI, Ålder, Status)", expanded=True):
+    col_k1, col_k2 = st.columns(2)
+    age = col_k1.number_input("Ålder", 18, 100, 65)
+    bmi = col_k2.number_input("BMI (kg/m²)", 15, 60, 27)
+    
+    col_k3, col_k4 = st.columns(2)
+    afib = col_k3.checkbox("Förmaksflimmer (Afib)")
+    htn = col_k4.checkbox("Hypertoni (≥2 läkemedel)")
+
+st.divider()
 
 # Flikar för diagnostiska ramverk
 tab1, tab2, tab3 = st.tabs(["EACVI 2016", "HFA-PEFF", "H2FPEF"])
@@ -45,32 +49,30 @@ with tab1:
     if status == "success": st.success(f"**Slutsats:** {res}")
     elif status == "warning": st.warning(f"**Slutsats:** {res}")
     else: st.error(f"**Slutsats:** {res}")
-    st.caption(f"E/e': {e_ep:.1f}")
+    st.caption(f"Beräknad E/e': {e_ep:.1f}")
 
 # --- TAB 2: HFA-PEFF ---
 with tab2:
     st.subheader("HFA-PEFF Score (Step 2)")
     
-    hfa_points = 0
     major_criteria = []
     minor_criteria = []
     
-    # Automatisk logik baserad på Tab 1
     if e_ep >= 15: major_criteria.append("E/e' ≥ 15 (2p)")
     elif 9 <= e_ep <= 14: minor_criteria.append("E/e' 9-14 (1p)")
     
     if tr_vmax > 2.8: major_criteria.append("TR Vmax > 2.8 (2p)")
     
     lavi_limit_major = 40 if afib else 34
-    lavi_limit_minor = 29 # Förenklat gränsvärde
+    lavi_limit_minor = 29 
     
     if lavi > lavi_limit_major: major_criteria.append(f"LAVI > {lavi_limit_major} (2p)")
     elif lavi >= lavi_limit_minor: minor_criteria.append(f"LAVI {lavi_limit_minor}-{lavi_limit_major} (1p)")
 
-    for c in major_criteria: st.write(f"✅ {c}")
-    for c in minor_criteria: st.write(f"🔸 {c}")
+    for m in major_criteria: st.write(f"✅ {m}")
+    for n in minor_criteria: st.write(f"🔸 {n}")
 
-    bnp = st.selectbox("NT-proBNP", ["Normal", "Minor (1p)", "Major (2p)"])
+    bnp = st.selectbox("NT-proBNP Status", ["Normal", "Minor (1p)", "Major (2p)"])
     
     hfa_total = (len(major_criteria) * 2) + len(minor_criteria)
     if bnp == "Minor (1p)": hfa_total += 1
@@ -97,4 +99,11 @@ with tab3:
     prob = prob_map.get(h2_pts, 99)
     
     st.metric("H2FPEF Score", h2_pts, f"{prob}% Sannolikhet")
-    st.progress(h2_pts / 9)
+    st.progress(min(h2_pts / 9, 1.0))
+    st.caption("Viktning: BMI>30(2), HTN(1), Afib(3), PASP>35(1), Ålder>60(1), E/e'>9(1)")
+
+st.divider()
+
+# --- RESET-KNAPP ---
+if st.button("🔄"):
+    st.rerun()

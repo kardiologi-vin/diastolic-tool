@@ -3,7 +3,7 @@ import streamlit as st
 # 1. Konfiguration
 st.set_page_config(page_title="Diastolisk Dysfunktion", layout="centered")
 
-# 2. CSS för total döljning av branding och optimerad mobilvy
+# 2. CSS för total döljning av branding och specifik font-kontroll
 st.markdown("""
     <style>
         /* Döljer header, footer och menyer helt */
@@ -17,21 +17,35 @@ st.markdown("""
         div[data-testid="stToolbar"] {display: none !important;}
         div[data-testid="stDecoration"] {display: none !important;}
 
-        /* Renodlad titel utan emoji för Pixel 10 */
+        /* Huvudtitel (24px) */
         .main-title {
             font-size: 24px !important;
             font-weight: bold;
             margin-top: -65px; 
-            padding-bottom: 15px;
+            padding-bottom: 0px;
             color: #1E1E1E;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* EACVI gradering (18px) */
+        .sub-title {
+            font-size: 18px !important;
+            font-weight: 600;
+            color: #31333F;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        /* Gör labels (t.ex. LVEF %) något tydligare på mobil */
+        label p {
+            font-size: 15px !important;
+            font-weight: 500 !important;
         }
     </style>
     <div class="main-title">Diastolisk Dysfunktion</div>
+    <div class="sub-title">EACVI gradering</div>
 """, unsafe_allow_html=True)
 
-# --- 3. EACVI DIASTOLISK GRADERING ---
-st.subheader("EACVI gradering")
+# --- 3. INPUTS (EACVI) ---
 with st.container():
     c1, c2 = st.columns(2)
     ef = c1.number_input("LVEF (%)", 10, 85, 55)
@@ -79,7 +93,7 @@ with st.expander("👤 Kliniska Parametrar & BMI", expanded=True):
 
 st.divider()
 
-# --- 5. SCORES ---
+# --- 5. SCORES (Flikar) ---
 tab1, tab2 = st.tabs(["HFA-PEFF", "H2FPEF"])
 
 with tab1:
@@ -88,7 +102,6 @@ with tab1:
     if e_ep >= 15: major.append("E/e' ≥ 15 (2p)")
     elif 9 <= e_ep <= 14: minor.append("E/e' 9-14 (1p)")
     if tr_vmax > 2.8: major.append("TR Vmax > 2.8 (2p)")
-    
     lavi_limit = 40 if afib else 34
     if lavi > lavi_limit: major.append(f"LAVI > {lavi_limit} (2p)")
     elif lavi >= 29: minor.append("LAVI 29-34 (1p)")
